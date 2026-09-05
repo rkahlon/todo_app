@@ -48,6 +48,10 @@ class TodoList:
                 return True
         return False
 
+    def clear(self):
+        self.tasks = []
+        self._save()
+
     def list(self, show_all=True):
         if show_all:
             return list(self.tasks)

@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Todo App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --purple: #7c4df0;
+    --purple-dark: #6a3ce0;
+    --red: #e0523f;
+    --row-bg: #eef0f4;
+    --card-bg: #ffffff;
+    --text: #23232b;
+    --muted: #8b8fa3;
+    --border: #e3e5ea;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 16px;
+    font-family: 'Baloo 2', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: linear-gradient(180deg, #6be8c4 0%, #6cbfe0 45%, #4f7fe4 100%);
+    color: var(--text);
+  }
+  main {
+    width: 100%;
+    max-width: 440px;
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 20px 50px rgba(20, 30, 60, 0.25);
+  }
+  h1 {
+    font-size: 28px;
+    font-weight: 800;
+    margin: 0 0 20px;
+  }
+  form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    font-family: inherit;
+    font-size: 15px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+  }
+  input[type="text"]::placeholder { color: var(--muted); }
+  input[type="date"] {
+    font-family: inherit;
+    font-size: 13px;
+    padding: 0 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    width: 118px;
+  }
+  input:focus { outline: 2px solid var(--purple); outline-offset: 1px; }
+  button {
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+  }
+  .add-btn {
+    flex-shrink: 0;
+    width: 48px;
+    background: var(--purple);
+    color: #fff;
+    border-radius: 10px;
+    font-size: 22px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .add-btn:hover { background: var(--purple-dark); }
+  ul {
+    list-style: none;
+    margin: 0 0 20px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 340px;
+    overflow-y: auto;
+  }
+  li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--row-bg);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .task-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    cursor: pointer;
+  }
+  .task-text {
+    font-size: 15px;
+    word-break: break-word;
+  }
+  li.done .task-text {
+    text-decoration: line-through;
+    color: var(--muted);
+  }
+  .task-due {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .task-due.overdue { color: var(--red); font-weight: 600; }
+  .remove {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--red);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+  }
+  li:hover .remove {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .empty {
+    text-align: center;
+    color: var(--muted);
+    padding: 20px 0;
+    font-size: 14px;
+  }
+  footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  footer p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .clear-btn {
+    background: var(--purple);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 10px 18px;
+    border-radius: 10px;
+  }
+  .clear-btn:hover { background: var(--purple-dark); }
+  .clear-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Todo App</h1>
+  <form id="add-form">
+    <input type="text" id="text-input" placeholder="Add your new todo" required>
+    <input type="date" id="due-input">
+    <button type="submit" class="add-btn" aria-label="Add task">+</button>
+  </form>
+  <ul id="task-list"></ul>
+  <footer>
+    <p id="pending-count">You have 0 pending tasks</p>
+    <button id="clear-btn" class="clear-btn">Clear All</button>
+  </footer>
+</main>
+<script>
+  const list = document.getElementById('task-list');
+  const form = document.getElementById('add-form');
+  const textInput = document.getElementById('text-input');
+  const dueInput = document.getElementById('due-input');
+  const pendingCount = document.getElementById('pending-count');
+  const clearBtn = document.getElementById('clear-btn');
+  const today = new Date().toISOString().slice(0, 10);
+
+  async function fetchJson(url, options) {
+    const res = await fetch(url, options);
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || res.statusText);
+    }
+    return res.status === 204 ? null : res.json();
+  }
+
+  function render(tasks) {
+    list.innerHTML = '';
+
+    if (tasks.length === 0) {
+      const empty = document.createElement('li');
+      empty.className = 'empty';
+      empty.style.background = 'none';
+      empty.textContent = 'No tasks. Add one above!';
+      list.appendChild(empty);
+    }
+
+    for (const task of tasks) {
+      const li = document.createElement('li');
+      if (task.done) li.classList.add('done');
+
+      const main = document.createElement('div');
+      main.className = 'task-main';
+      main.title = task.done ? '' : 'Click to mark as done';
+      if (!task.done) main.addEventListener('click', () => markDone(task.id));
+
+      const text = document.createElement('span');
+      text.className = 'task-text';
+      text.textContent = task.text;
+      main.appendChild(text);
+
+      if (task.due) {
+        const due = document.createElement('span');
+        due.className = 'task-due';
+        if (!task.done && task.due < today) due.classList.add('overdue');
+        due.textContent = `Due ${task.due}`;
+        main.appendChild(due);
+      }
+
+      li.appendChild(main);
+
+      const remove = document.createElement('button');
+      remove.className = 'remove';
+      remove.innerHTML = '&#128465;';
+      remove.title = 'Remove';
+      remove.addEventListener('click', () => removeTask(task.id));
+      li.appendChild(remove);
+
+      list.appendChild(li);
+    }
+
+    const pending = tasks.filter(t => !t.done).length;
+    pendingCount.textContent = `You have ${pending} pending task${pending === 1 ? '' : 's'}`;
+    clearBtn.disabled = tasks.length === 0;
+  }
+
+  async function load() {
+    const tasks = await fetchJson('/api/tasks');
+    render(tasks);
+  }
+
+  async function markDone(id) {
+    await fetchJson(`/api/tasks/${id}/done`, { method: 'POST' });
+    load();
+  }
+
+  async function removeTask(id) {
+    await fetchJson(`/api/tasks/${id}`, { method: 'DELETE' });
+    load();
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = textInput.value.trim();
+    if (!text) return;
+    await fetchJson('/api/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, due: dueInput.value || null }),
+    });
+    textInput.value = '';
+    dueInput.value = '';
+    textInput.focus();
+    load();
+  });
+
+  clearBtn.addEventListener('click', async () => {
+    if (!confirm('Clear all tasks? This cannot be undone.')) return;
+    await fetchJson('/api/tasks', { method: 'DELETE' });
+    load();
+  });
+
+  load();
+</script>
+</body>
+</html>

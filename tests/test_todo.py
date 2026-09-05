@@ -50,6 +50,18 @@ def test_remove_deletes_task(store_path):
     assert todo.remove(1) is False
 
 
+def test_clear_removes_all_tasks(store_path):
+    todo = TodoList(store_path=store_path)
+    todo.add("Task A")
+    todo.add("Task B")
+
+    todo.clear()
+
+    assert todo.tasks == []
+    reloaded = TodoList(store_path=store_path)
+    assert reloaded.tasks == []
+
+
 def test_list_filters_pending(store_path):
     todo = TodoList(store_path=store_path)
     todo.add("Task A")
